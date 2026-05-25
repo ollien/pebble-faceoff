@@ -147,7 +147,7 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
   int32_t f_stripe_vertical_height =
       f_bounds.x * cos_lookup(SLANT_ANGLE) / sin_lookup(SLANT_ANGLE);
 
-  int32_t f_height_offset = f_stripe_vertical_height + f_padding;
+  int32_t f_height_offset = -f_stripe_vertical_height - f_padding;
   if (flip) {
     f_height_offset *= -1;
   }
@@ -165,10 +165,10 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
 
   if (g_settings.fill_corners) {
     if (flip) {
-      upper_left_point = FPoint(0, upper_right_point.y);
-    } else {
       upper_right_point =
           FPoint(f_bounds.x, f_bounds.y + abs(upper_right_point.y));
+    } else {
+      upper_left_point = FPoint(0, upper_right_point.y);
     }
   }
 
@@ -184,8 +184,8 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
 }
 
 static void prv_draw_background_layer(Layer *layer, GContext *ctx) {
-  prv_draw_background_stripe(layer, ctx, g_settings.top_stripe_color, true);
-  prv_draw_background_stripe(layer, ctx, g_settings.bottom_stripe_color, false);
+  prv_draw_background_stripe(layer, ctx, g_settings.top_stripe_color, false);
+  prv_draw_background_stripe(layer, ctx, g_settings.bottom_stripe_color, true);
 }
 
 static void prv_draw_time_layer(Layer *layer, GContext *ctx) {
