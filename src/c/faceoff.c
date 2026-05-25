@@ -39,7 +39,7 @@ static int32_t prv_f_date_font_offset(GRect bounds) {
 
 static void prv_draw_time(Layer *layer, GContext *ctx, tm *time) {
   FContext fctx;
-  GRect bounds = layer_get_bounds(layer);
+  GRect bounds = layer_get_unobstructed_bounds(layer);
   fctx_init_context(&fctx, ctx);
 
   fctx_set_text_cap_height(&fctx, s_font,
@@ -84,7 +84,7 @@ static void prv_draw_time(Layer *layer, GContext *ctx, tm *time) {
 
 static void prv_draw_date(Layer *layer, GContext *ctx, tm *time) {
   FContext fctx;
-  GRect bounds = layer_get_bounds(layer);
+  GRect bounds = layer_get_unobstructed_bounds(layer);
   fctx_init_context(&fctx, ctx);
 
   fctx_set_text_cap_height(&fctx, s_font,
@@ -133,7 +133,7 @@ static void prv_draw_date(Layer *layer, GContext *ctx, tm *time) {
 static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
                                        GColor color, bool flip) {
   FContext fctx;
-  GRect bounds = layer_get_bounds(layer);
+  GRect bounds = layer_get_unobstructed_bounds(layer);
   fctx_init_context(&fctx, ctx);
 
   FPoint f_center =
@@ -206,7 +206,7 @@ static void prv_tick_handler(tm *_tick_time, TimeUnits _units_changed) {
   layer_mark_dirty(s_time_layer);
 }
 
-static void prv_settings_update_handler() {
+static void prv_invalidate_layers() {
   window_set_background_color(s_window, g_settings.background_color);
   layer_mark_dirty(s_time_layer);
   layer_mark_dirty(s_background_layer);
@@ -232,20 +232,33 @@ static void prv_load_settings() {
   persist_read_data(SETTINGS_KEY, &g_settings, sizeof(g_settings));
 }
 
-static void inbox_received_callback(DictionaryIterator *iterator,
-                                    void *context) {
+static void prv_inbox_received_callback(DictionaryIterator *iterator,
+                                        void *context) {
 
   bool dirty = update_settings(iterator, context);
   if (dirty) {
     prv_save_settings();
-    prv_settings_update_handler();
+    prv_invalidate_layers();
   }
+}
+
+static void
+prv_unobstructed_will_change_callback(GRect final_unobstructed_screen_area,
+                                      void *context) {}
+
+static void prv_unobstructed_change_callback(AnimationProgress progress,
+                                             void *context) {
+  prv_invalidate_layers();
+}
+
+static void prv_unobstructed_did_change_callback(void *context) {
+  prv_invalidate_layers();
 }
 
 static void prv_init(void) {
   prv_load_settings();
 
-  app_message_register_inbox_received(inbox_received_callback);
+  app_message_register_inbox_received(prv_inbox_received_callback);
 
   app_message_open(256, 0);
 
@@ -267,6 +280,12 @@ static void prv_init(void) {
   layer_add_child(window_layer, s_time_layer);
 
   window_set_background_color(s_window, g_settings.background_color);
+
+  UnobstructedAreaHandlers handlers = {
+      .will_change = prv_unobstructed_will_change_callback,
+      .change = prv_unobstructed_change_callback,
+      .did_change = prv_unobstructed_did_change_callback};
+  unobstructed_area_service_subscribe(handlers, NULL);
 
   tick_timer_service_subscribe(MINUTE_UNIT, prv_tick_handler);
 
