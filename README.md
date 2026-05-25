@@ -2,6 +2,8 @@
 
 A Pebble watchface inspired by "versus" screens.
 
+[Download it on the rePebble App Store](https://apps.repebble.com/836fe574006048dd84dacb5d)
+
 ## Screenshots
 
 ![Screenshot of Faceoff on Emery](./img/emery.png)
