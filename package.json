@@ -7,6 +7,7 @@
   ],
   "private": true,
   "dependencies": {
+    "@rebble/clay": "^1.0.10",
     "pebble-fctx": "^1.6.5"
   },
   "pebble": {
@@ -24,7 +25,14 @@
       "watchface": true
     },
     "messageKeys": [
-      "dummy"
+      "BACKGROUND_COLOR",
+      "TOP_STRIPE_COLOR",
+      "BOTTOM_STRIPE_COLOR",
+      "HOUR_COLOR",
+      "MINUTE_COLOR",
+      "SHOW_DATE",
+      "WDAY_COLOR",
+      "MDAY_COLOR"
     ],
     "resources": {
       "media": [
@@ -34,7 +42,10 @@
           "file": "BebasNeue-Regular.ffont"
         }
       ]
-    }
+    },
+    "capabilities": [
+      "configurable"
+    ]
   },
   "devDependencies": {
     "pebble-fctx-compiler": "^1.2.2"
