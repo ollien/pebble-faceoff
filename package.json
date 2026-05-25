@@ -1,6 +1,6 @@
 {
   "name": "faceoff",
-  "author": "MakeAwesomeHappen",
+  "author": "ollien",
   "version": "1.0.0",
   "keywords": [
     "pebble-app"
@@ -11,7 +11,7 @@
     "pebble-fctx": "^1.6.5"
   },
   "pebble": {
-    "displayName": "faceoff",
+    "displayName": "Faceoff",
     "uuid": "b7990d2d-4ea8-4d2c-9b54-603ae7546fee",
     "sdkVersion": "3",
     "enableMultiJS": true,
