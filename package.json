@@ -1,0 +1,45 @@
+{
+  "name": "faceoff",
+  "author": "MakeAwesomeHappen",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {
+    "pebble-fctx": "^1.6.5"
+  },
+  "pebble": {
+    "displayName": "faceoff",
+    "uuid": "b7990d2d-4ea8-4d2c-9b54-603ae7546fee",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "messageKeys": [
+      "dummy"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "raw",
+          "name": "TIMEFONT",
+          "file": "GalhauDisplay-Heavy.ffont"
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "pebble-fctx-compiler": "^1.2.2"
+  }
+}
