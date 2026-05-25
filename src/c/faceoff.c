@@ -37,6 +37,18 @@ static int32_t prv_f_date_font_offset(GRect bounds) {
   return INT_TO_FIXED(bounds.size.h) / 2 - INT_TO_FIXED(bounds.size.h) / 5;
 }
 
+static void prv_f_draw_text(FContext *fctx, FPoint f_center, const char *text,
+                            GColor color) {
+  fctx_set_rotation(fctx, TEXT_ANGLE);
+
+  fctx_begin_fill(fctx);
+  fctx_set_offset(fctx, f_center);
+  fctx_set_fill_color(fctx, color);
+  fctx_draw_string(fctx, text, s_font, GTextAlignmentCenter,
+                   FTextAnchorCapMiddle);
+  fctx_end_fill(fctx);
+}
+
 static void prv_draw_time(Layer *layer, GContext *ctx, tm *time) {
   FContext fctx;
   GRect bounds = layer_get_unobstructed_bounds(layer);
@@ -63,21 +75,8 @@ static void prv_draw_time(Layer *layer, GContext *ctx, tm *time) {
   strftime(s_hour_buffer, sizeof(s_hour_buffer), "%I", time);
   strftime(s_min_buffer, sizeof(s_min_buffer), "%M", time);
 
-  fctx_set_rotation(&fctx, TEXT_ANGLE);
-
-  fctx_begin_fill(&fctx);
-  fctx_set_offset(&fctx, f_hour_center);
-  fctx_set_fill_color(&fctx, g_settings.hour_color);
-  fctx_draw_string(&fctx, s_hour_buffer, s_font, GTextAlignmentCenter,
-                   FTextAnchorCapMiddle);
-  fctx_end_fill(&fctx);
-
-  fctx_begin_fill(&fctx);
-  fctx_set_offset(&fctx, f_min_center);
-  fctx_set_fill_color(&fctx, g_settings.minute_color);
-  fctx_draw_string(&fctx, s_min_buffer, s_font, GTextAlignmentCenter,
-                   FTextAnchorCapMiddle);
-  fctx_end_fill(&fctx);
+  prv_f_draw_text(&fctx, f_hour_center, s_hour_buffer, g_settings.hour_color);
+  prv_f_draw_text(&fctx, f_min_center, s_min_buffer, g_settings.minute_color);
 
   fctx_deinit_context(&fctx);
 }
@@ -109,23 +108,12 @@ static void prv_draw_date(Layer *layer, GContext *ctx, tm *time) {
              f_center.y + cos_lookup(TEXT_ANGLE) * f_radius / TRIG_MAX_RATIO -
                  cos_lookup(perp_angle) * f_offset / TRIG_MAX_RATIO);
 
-  fctx_set_rotation(&fctx, TEXT_ANGLE);
-
-  fctx_begin_fill(&fctx);
-  fctx_set_fill_color(&fctx, g_settings.wday_color);
-  fctx_set_offset(&fctx, f_wday_center);
-  fctx_draw_string(&fctx, s_wdays[time->tm_wday], s_font, GTextAlignmentCenter,
-                   FTextAnchorCapMiddle);
-  fctx_end_fill(&fctx);
-
   static char s_mday_buffer[3];
   strftime(s_mday_buffer, sizeof(s_mday_buffer), "%d", time);
-  fctx_begin_fill(&fctx);
-  fctx_set_offset(&fctx, f_mday_center);
-  fctx_set_fill_color(&fctx, g_settings.mday_color);
-  fctx_draw_string(&fctx, s_mday_buffer, s_font, GTextAlignmentCenter,
-                   FTextAnchorCapMiddle);
-  fctx_end_fill(&fctx);
+
+  prv_f_draw_text(&fctx, f_wday_center, s_wdays[time->tm_wday],
+                  g_settings.wday_color);
+  prv_f_draw_text(&fctx, f_mday_center, s_mday_buffer, g_settings.mday_color);
 
   fctx_deinit_context(&fctx);
 }
