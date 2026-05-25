@@ -44,6 +44,12 @@ module.exports = [
 				"defaultValue": "Time Style"
 			},
 			{
+				"type": "toggle",
+				"messageKey": "SHOW_24H_TIME",
+				"label": "24-hour time",
+				"defaultValue": false
+			},
+			{
 				"type": "color",
 				"messageKey": "HOUR_COLOR",
 				"label": "Hour Color",

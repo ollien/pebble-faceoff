@@ -11,6 +11,7 @@ void default_settings() {
   g_settings.fill_corners = false;
   g_settings.hour_color = GColorWhite;
   g_settings.minute_color = GColorWhite;
+  g_settings.show_24h_time = false;
   g_settings.show_date = true;
   g_settings.wday_color = GColorWhite;
   g_settings.mday_color = GColorWhite;
@@ -62,6 +63,12 @@ bool update_settings(DictionaryIterator *iterator, void *context) {
     dirty = true;
   }
 
+  Tuple *show_24h_tuple = dict_find(iterator, MESSAGE_KEY_SHOW_24H_TIME);
+  if (show_24h_tuple) {
+    g_settings.show_24h_time = show_24h_tuple->value->int32 == 1;
+    dirty = true;
+  }
+
   Tuple *show_date_tuple = dict_find(iterator, MESSAGE_KEY_SHOW_DATE);
   if (show_date_tuple) {
     g_settings.show_date = show_date_tuple->value->int32 == 1;
@@ -81,4 +88,17 @@ bool update_settings(DictionaryIterator *iterator, void *context) {
   }
 
   return dirty;
+}
+
+void from_v2_settings(SettingsV2 v2) {
+  g_settings.top_stripe_color = v2.top_stripe_color;
+  g_settings.bottom_stripe_color = v2.bottom_stripe_color;
+  g_settings.background_color = v2.background_color;
+  g_settings.fill_corners = v2.fill_corners;
+  g_settings.hour_color = v2.hour_color;
+  g_settings.minute_color = v2.minute_color;
+  g_settings.show_24h_time = false;
+  g_settings.show_date = v2.show_date;
+  g_settings.wday_color = v2.wday_color;
+  g_settings.mday_color = v2.mday_color;
 }
