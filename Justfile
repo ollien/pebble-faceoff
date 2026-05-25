@@ -12,4 +12,4 @@ install_deps:
 	
 compile_font: install_deps
 	# Compile our font for all digits and all the letters in three  latter day names
-	npx --no-install fctx-compiler fonts/GalhauDisplay-Heavy.svg -r '[0-9:URSNIADHFTOWME]'
+	npx --no-install fctx-compiler fonts/BebasNeue-Regular.svg -r '[0-9:URSNIADHFTOWME]'
