@@ -1,5 +1,4 @@
-#include "gcolor_definitions.h"
-#include "message_keys.auto.h"
+#include "settings.h"
 #include <pebble-fctx/fctx.h>
 #include <pebble-fctx/ffont.h>
 #include <pebble.h>
@@ -10,24 +9,10 @@
 // 67.5 deg
 #define SLANT_ANGLE (TEXT_ANGLE + 90 * TRIG_MAX_ANGLE / 360)
 
-#define SETTINGS_KEY 1
-typedef struct Settings {
-  GColor top_stripe_color;
-  GColor bottom_stripe_color;
-  GColor background_color;
-  GColor hour_color;
-  GColor minute_color;
-  bool show_date;
-  GColor wday_color;
-  GColor mday_color;
-} Settings;
-
 static Window *s_window;
 static FFont *s_font;
 static Layer *s_time_layer;
 static Layer *s_background_layer;
-
-static Settings s_settings;
 
 static char *s_wdays[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 
@@ -82,12 +67,12 @@ static void prv_draw_time(Layer *layer, GContext *ctx, tm *time) {
   fctx_set_rotation(&fctx, TEXT_ANGLE);
 
   fctx_set_offset(&fctx, f_hour_center);
-  fctx_set_fill_color(&fctx, s_settings.hour_color);
+  fctx_set_fill_color(&fctx, g_settings.hour_color);
   fctx_draw_string(&fctx, s_hour_buffer, s_font, GTextAlignmentCenter,
                    FTextAnchorCapMiddle);
 
   fctx_set_offset(&fctx, f_min_center);
-  fctx_set_fill_color(&fctx, s_settings.minute_color);
+  fctx_set_fill_color(&fctx, g_settings.minute_color);
   fctx_draw_string(&fctx, s_min_buffer, s_font, GTextAlignmentCenter,
                    FTextAnchorCapMiddle);
 
@@ -125,7 +110,7 @@ static void prv_draw_date(Layer *layer, GContext *ctx, tm *time) {
   fctx_begin_fill(&fctx);
   fctx_set_rotation(&fctx, TEXT_ANGLE);
 
-  fctx_set_fill_color(&fctx, s_settings.wday_color);
+  fctx_set_fill_color(&fctx, g_settings.wday_color);
   fctx_set_offset(&fctx, f_wday_center);
   fctx_draw_string(&fctx, s_wdays[time->tm_wday], s_font, GTextAlignmentCenter,
                    FTextAnchorCapMiddle);
@@ -133,7 +118,7 @@ static void prv_draw_date(Layer *layer, GContext *ctx, tm *time) {
   static char s_mday_buffer[3];
   strftime(s_mday_buffer, sizeof(s_mday_buffer), "%d", time);
   fctx_set_offset(&fctx, f_mday_center);
-  fctx_set_fill_color(&fctx, s_settings.mday_color);
+  fctx_set_fill_color(&fctx, g_settings.mday_color);
   fctx_draw_string(&fctx, s_mday_buffer, s_font, GTextAlignmentCenter,
                    FTextAnchorCapMiddle);
 
@@ -190,8 +175,8 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
 }
 
 static void prv_draw_background_layer(Layer *layer, GContext *ctx) {
-  prv_draw_background_stripe(layer, ctx, s_settings.top_stripe_color, true);
-  prv_draw_background_stripe(layer, ctx, s_settings.bottom_stripe_color, false);
+  prv_draw_background_stripe(layer, ctx, g_settings.top_stripe_color, true);
+  prv_draw_background_stripe(layer, ctx, g_settings.bottom_stripe_color, false);
 }
 
 static void prv_draw_time_layer(Layer *layer, GContext *ctx) {
@@ -199,7 +184,7 @@ static void prv_draw_time_layer(Layer *layer, GContext *ctx) {
   struct tm *time = localtime(&now);
 
   prv_draw_time(layer, ctx, time);
-  if (s_settings.show_date) {
+  if (g_settings.show_date) {
     prv_draw_date(layer, ctx, time);
   }
 }
@@ -209,7 +194,7 @@ static void prv_tick_handler(tm *_tick_time, TimeUnits _units_changed) {
 }
 
 static void prv_settings_update_handler() {
-  window_set_background_color(s_window, s_settings.background_color);
+  window_set_background_color(s_window, g_settings.background_color);
   layer_mark_dirty(s_time_layer);
   layer_mark_dirty(s_background_layer);
 }
@@ -225,85 +210,19 @@ static void prv_window_unload(Window *window) {
   layer_destroy(s_background_layer);
 }
 
-static void prv_default_settings() {
-  s_settings.top_stripe_color = GColorJazzberryJam;
-  s_settings.bottom_stripe_color = GColorVeryLightBlue;
-  s_settings.background_color = GColorBlack;
-  s_settings.hour_color = GColorWhite;
-  s_settings.minute_color = GColorWhite;
-  s_settings.show_date = true;
-  s_settings.wday_color = GColorWhite;
-  s_settings.mday_color = GColorWhite;
-}
-
 static void prv_save_settings() {
-  persist_write_data(SETTINGS_KEY, &s_settings, sizeof(s_settings));
+  persist_write_data(SETTINGS_KEY, &g_settings, sizeof(g_settings));
 }
 
 static void prv_load_settings() {
-  prv_default_settings();
-  persist_read_data(SETTINGS_KEY, &s_settings, sizeof(s_settings));
+  default_settings();
+  persist_read_data(SETTINGS_KEY, &g_settings, sizeof(g_settings));
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator,
-                                    void *_context) {
-  bool dirty = false;
+                                    void *context) {
 
-  Tuple *top_stripe_color_tuple =
-      dict_find(iterator, MESSAGE_KEY_TOP_STRIPE_COLOR);
-
-  if (top_stripe_color_tuple) {
-    s_settings.top_stripe_color =
-        GColorFromHEX(top_stripe_color_tuple->value->int32);
-    dirty = true;
-  }
-
-  Tuple *bottom_stripe_color_tuple =
-      dict_find(iterator, MESSAGE_KEY_BOTTOM_STRIPE_COLOR);
-  if (bottom_stripe_color_tuple) {
-    s_settings.bottom_stripe_color =
-        GColorFromHEX(bottom_stripe_color_tuple->value->int32);
-    dirty = true;
-  }
-
-  Tuple *background_color_tuple =
-      dict_find(iterator, MESSAGE_KEY_BACKGROUND_COLOR);
-  if (background_color_tuple) {
-    s_settings.background_color =
-        GColorFromHEX(background_color_tuple->value->int32);
-    dirty = true;
-  }
-
-  Tuple *hour_color_tuple = dict_find(iterator, MESSAGE_KEY_HOUR_COLOR);
-  if (hour_color_tuple) {
-    s_settings.hour_color = GColorFromHEX(hour_color_tuple->value->int32);
-    dirty = true;
-  }
-
-  Tuple *minute_color_tuple = dict_find(iterator, MESSAGE_KEY_MINUTE_COLOR);
-  if (minute_color_tuple) {
-    s_settings.minute_color = GColorFromHEX(minute_color_tuple->value->int32);
-    dirty = true;
-  }
-
-  Tuple *show_date_tuple = dict_find(iterator, MESSAGE_KEY_SHOW_DATE);
-  if (show_date_tuple) {
-    s_settings.show_date = show_date_tuple->value->int32 == 1;
-    dirty = true;
-  }
-
-  Tuple *wday_color = dict_find(iterator, MESSAGE_KEY_WDAY_COLOR);
-  if (wday_color) {
-    s_settings.wday_color = GColorFromHEX(wday_color->value->int32);
-    dirty = true;
-  }
-
-  Tuple *mday_color_tuple = dict_find(iterator, MESSAGE_KEY_MDAY_COLOR);
-  if (mday_color_tuple) {
-    s_settings.mday_color = GColorFromHEX(mday_color_tuple->value->int32);
-    dirty = true;
-  }
-
+  bool dirty = update_settings(iterator, context);
   if (dirty) {
     prv_save_settings();
     prv_settings_update_handler();
@@ -334,7 +253,7 @@ static void prv_init(void) {
   s_time_layer = layer_create(bounds);
   layer_add_child(window_layer, s_time_layer);
 
-  window_set_background_color(s_window, s_settings.background_color);
+  window_set_background_color(s_window, g_settings.background_color);
 
   tick_timer_service_subscribe(MINUTE_UNIT, prv_tick_handler);
 
