@@ -63,20 +63,22 @@ static void prv_draw_time(Layer *layer, GContext *ctx, tm *time) {
   strftime(s_hour_buffer, sizeof(s_hour_buffer), "%I", time);
   strftime(s_min_buffer, sizeof(s_min_buffer), "%M", time);
 
-  fctx_begin_fill(&fctx);
   fctx_set_rotation(&fctx, TEXT_ANGLE);
 
+  fctx_begin_fill(&fctx);
   fctx_set_offset(&fctx, f_hour_center);
   fctx_set_fill_color(&fctx, g_settings.hour_color);
   fctx_draw_string(&fctx, s_hour_buffer, s_font, GTextAlignmentCenter,
                    FTextAnchorCapMiddle);
+  fctx_end_fill(&fctx);
 
+  fctx_begin_fill(&fctx);
   fctx_set_offset(&fctx, f_min_center);
   fctx_set_fill_color(&fctx, g_settings.minute_color);
   fctx_draw_string(&fctx, s_min_buffer, s_font, GTextAlignmentCenter,
                    FTextAnchorCapMiddle);
-
   fctx_end_fill(&fctx);
+
   fctx_deinit_context(&fctx);
 }
 
@@ -107,22 +109,24 @@ static void prv_draw_date(Layer *layer, GContext *ctx, tm *time) {
              f_center.y + cos_lookup(TEXT_ANGLE) * f_radius / TRIG_MAX_RATIO -
                  cos_lookup(perp_angle) * f_offset / TRIG_MAX_RATIO);
 
-  fctx_begin_fill(&fctx);
   fctx_set_rotation(&fctx, TEXT_ANGLE);
 
+  fctx_begin_fill(&fctx);
   fctx_set_fill_color(&fctx, g_settings.wday_color);
   fctx_set_offset(&fctx, f_wday_center);
   fctx_draw_string(&fctx, s_wdays[time->tm_wday], s_font, GTextAlignmentCenter,
                    FTextAnchorCapMiddle);
+  fctx_end_fill(&fctx);
 
   static char s_mday_buffer[3];
   strftime(s_mday_buffer, sizeof(s_mday_buffer), "%d", time);
+  fctx_begin_fill(&fctx);
   fctx_set_offset(&fctx, f_mday_center);
   fctx_set_fill_color(&fctx, g_settings.mday_color);
   fctx_draw_string(&fctx, s_mday_buffer, s_font, GTextAlignmentCenter,
                    FTextAnchorCapMiddle);
-
   fctx_end_fill(&fctx);
+
   fctx_deinit_context(&fctx);
 }
 
