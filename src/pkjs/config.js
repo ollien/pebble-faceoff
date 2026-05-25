@@ -27,6 +27,12 @@ module.exports = [
 				"messageKey": "BACKGROUND_COLOR",
 				"label": "Background Color",
 				"defaultValue": "0x000000"
+			},
+			{
+				"type": "toggle",
+				"messageKey": "FILL_CORNERS",
+				"label": "Fill Corners (Square Watches Only)",
+				"defaultValue": false
 			}
 		]
 	},

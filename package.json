@@ -28,6 +28,7 @@
       "BACKGROUND_COLOR",
       "TOP_STRIPE_COLOR",
       "BOTTOM_STRIPE_COLOR",
+      "FILL_CORNERS",
       "HOUR_COLOR",
       "MINUTE_COLOR",
       "SHOW_DATE",

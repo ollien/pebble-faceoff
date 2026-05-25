@@ -163,6 +163,15 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
   FPoint upper_right_point =
       FPoint(f_bounds.x, lower_right_point.y + f_height_offset);
 
+  if (g_settings.fill_corners) {
+    if (flip) {
+      upper_left_point = FPoint(0, upper_right_point.y);
+    } else {
+      upper_right_point =
+          FPoint(f_bounds.x, f_bounds.y + abs(upper_right_point.y));
+    }
+  }
+
   FPoint points[] = {upper_left_point, lower_left_point, lower_right_point,
                      upper_right_point};
 

@@ -8,6 +8,7 @@ void default_settings() {
   g_settings.top_stripe_color = GColorJazzberryJam;
   g_settings.bottom_stripe_color = GColorVeryLightBlue;
   g_settings.background_color = GColorBlack;
+  g_settings.fill_corners = false;
   g_settings.hour_color = GColorWhite;
   g_settings.minute_color = GColorWhite;
   g_settings.show_date = true;
@@ -40,6 +41,12 @@ bool update_settings(DictionaryIterator *iterator, void *context) {
   if (background_color_tuple) {
     g_settings.background_color =
         GColorFromHEX(background_color_tuple->value->int32);
+    dirty = true;
+  }
+
+  Tuple *fill_corners_tuple = dict_find(iterator, MESSAGE_KEY_FILL_CORNERS);
+  if (fill_corners_tuple) {
+    g_settings.fill_corners = fill_corners_tuple->value->int32 == 1;
     dirty = true;
   }
 

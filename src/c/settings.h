@@ -9,6 +9,7 @@ typedef struct Settings {
   GColor top_stripe_color;
   GColor bottom_stripe_color;
   GColor background_color;
+  bool fill_corners;
   GColor hour_color;
   GColor minute_color;
   bool show_date;
