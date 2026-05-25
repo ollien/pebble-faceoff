@@ -3,7 +3,7 @@
 
 #include <pebble.h>
 
-#define SETTINGS_KEY 1
+#define SETTINGS_KEY 2
 
 typedef struct Settings {
   GColor top_stripe_color;
