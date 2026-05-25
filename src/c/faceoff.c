@@ -14,23 +14,39 @@ static FFont *s_font;
 static Layer *s_time_layer;
 static Layer *s_background_layer;
 
-static int32_t prv_f_font_height(GRect bounds) {
+static char *s_wdays[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+
+static int32_t prv_f_time_font_height(GRect bounds) {
   return INT_TO_FIXED(bounds.size.h / 3);
 }
-static int32_t prv_f_font_radius(GRect bounds) {
-  return INT_TO_FIXED(bounds.size.h / 3) - INT_TO_FIXED(bounds.size.h / 3) / 3;
+
+static int32_t prv_f_date_font_height(GRect bounds) {
+  return INT_TO_FIXED(bounds.size.h / 10);
 }
 
-static void prv_draw_time(Layer *layer, GContext *ctx) {
+static int32_t prv_f_time_font_radius(GRect bounds) {
+  return INT_TO_FIXED(bounds.size.h) / 3 - INT_TO_FIXED(bounds.size.h) / 9;
+}
+
+static int32_t prv_f_date_font_radius(GRect bounds) {
+  return prv_f_time_font_radius(bounds) - prv_f_time_font_height(bounds) / 2 +
+         prv_f_date_font_height(bounds) / 2;
+}
+
+static int32_t prv_f_date_font_offset(GRect bounds) {
+  return INT_TO_FIXED(bounds.size.h) / 2 - INT_TO_FIXED(bounds.size.h) / 5;
+}
+
+static void prv_draw_time(Layer *layer, GContext *ctx, tm *time) {
   FContext fctx;
   GRect bounds = layer_get_bounds(layer);
   fctx_init_context(&fctx, ctx);
 
   fctx_set_fill_color(&fctx, GColorWhite);
   fctx_set_text_cap_height(&fctx, s_font,
-                           FIXED_TO_INT(prv_f_font_height(bounds)));
+                           FIXED_TO_INT(prv_f_time_font_height(bounds)));
 
-  int32_t f_radius = prv_f_font_radius(bounds);
+  int32_t f_radius = prv_f_time_font_radius(bounds);
 
   FPoint f_center =
       FPoint(INT_TO_FIXED(bounds.size.w / 2), INT_TO_FIXED(bounds.size.h / 2));
@@ -43,11 +59,8 @@ static void prv_draw_time(Layer *layer, GContext *ctx) {
       FPoint(f_center.x - sin_lookup(TEXT_ANGLE) * f_radius / TRIG_MAX_RATIO,
              f_center.y + cos_lookup(TEXT_ANGLE) * f_radius / TRIG_MAX_RATIO);
 
-  time_t now = time(NULL);
-  struct tm *time = localtime(&now);
-
-  char s_hour_buffer[3];
-  char s_min_buffer[3];
+  static char s_hour_buffer[3];
+  static char s_min_buffer[3];
   strftime(s_hour_buffer, sizeof(s_hour_buffer), "%I", time);
   strftime(s_min_buffer, sizeof(s_min_buffer), "%M", time);
 
@@ -66,6 +79,51 @@ static void prv_draw_time(Layer *layer, GContext *ctx) {
   fctx_deinit_context(&fctx);
 }
 
+static void prv_draw_date(Layer *layer, GContext *ctx, tm *time) {
+  FContext fctx;
+  GRect bounds = layer_get_bounds(layer);
+  fctx_init_context(&fctx, ctx);
+
+  fctx_set_fill_color(&fctx, GColorWhite);
+  fctx_set_text_cap_height(&fctx, s_font,
+                           FIXED_TO_INT(prv_f_date_font_height(bounds)));
+
+  int32_t f_radius = prv_f_date_font_radius(bounds);
+  int32_t f_offset = prv_f_date_font_offset(bounds);
+  int32_t perp_angle = TEXT_ANGLE + TRIG_MAX_ANGLE * 90 / 360;
+
+  FPoint f_center =
+      FPoint(INT_TO_FIXED(bounds.size.w / 2), INT_TO_FIXED(bounds.size.h / 2));
+
+  FPoint f_wday_center =
+      FPoint(f_center.x + sin_lookup(TEXT_ANGLE) * f_radius / TRIG_MAX_RATIO -
+                 sin_lookup(perp_angle) * f_offset / TRIG_MAX_RATIO,
+             f_center.y - cos_lookup(TEXT_ANGLE) * f_radius / TRIG_MAX_RATIO +
+                 cos_lookup(perp_angle) * f_offset / TRIG_MAX_RATIO);
+
+  FPoint f_mday_center =
+      FPoint(f_center.x - sin_lookup(TEXT_ANGLE) * f_radius / TRIG_MAX_RATIO +
+                 sin_lookup(perp_angle) * f_offset / TRIG_MAX_RATIO,
+             f_center.y + cos_lookup(TEXT_ANGLE) * f_radius / TRIG_MAX_RATIO -
+                 cos_lookup(perp_angle) * f_offset / TRIG_MAX_RATIO);
+
+  fctx_begin_fill(&fctx);
+  fctx_set_rotation(&fctx, TEXT_ANGLE);
+
+  fctx_set_offset(&fctx, f_wday_center);
+  fctx_draw_string(&fctx, s_wdays[time->tm_wday], s_font, GTextAlignmentCenter,
+                   FTextAnchorCapMiddle);
+
+  static char s_mday_buffer[3];
+  strftime(s_mday_buffer, sizeof(s_mday_buffer), "%d", time);
+  fctx_set_offset(&fctx, f_mday_center);
+  fctx_draw_string(&fctx, s_mday_buffer, s_font, GTextAlignmentCenter,
+                   FTextAnchorCapMiddle);
+
+  fctx_end_fill(&fctx);
+  fctx_deinit_context(&fctx);
+}
+
 static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
                                        GColor color, bool flip) {
   FContext fctx;
@@ -78,8 +136,8 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
   FPoint f_bounds =
       FPoint(INT_TO_FIXED(bounds.size.w), INT_TO_FIXED(bounds.size.h));
 
-  int32_t f_stripe_width = prv_f_font_height(bounds);
-  int32_t f_padding = prv_f_font_radius(bounds) - f_stripe_width / 4;
+  int32_t f_stripe_width = prv_f_time_font_height(bounds);
+  int32_t f_padding = prv_f_time_font_radius(bounds) - f_stripe_width / 4;
 
   int32_t f_center_to_stripe_bottom_left_offset =
       f_center.x * cos_lookup(SLANT_ANGLE) / sin_lookup(SLANT_ANGLE);
@@ -114,9 +172,17 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
   fctx_deinit_context(&fctx);
 }
 
-static void prv_draw_background(Layer *layer, GContext *ctx) {
+static void prv_draw_background_layer(Layer *layer, GContext *ctx) {
   prv_draw_background_stripe(layer, ctx, GColorJazzberryJam, true);
   prv_draw_background_stripe(layer, ctx, GColorVeryLightBlue, false);
+}
+
+static void prv_draw_time_layer(Layer *layer, GContext *ctx) {
+  time_t now = time(NULL);
+  struct tm *time = localtime(&now);
+
+  prv_draw_time(layer, ctx, time);
+  prv_draw_date(layer, ctx, time);
 }
 
 static void prv_tick_handler(tm *_tick_time, TimeUnits _units_changed) {
@@ -124,8 +190,8 @@ static void prv_tick_handler(tm *_tick_time, TimeUnits _units_changed) {
 }
 
 static void prv_window_load(Window *window) {
-  layer_set_update_proc(s_time_layer, prv_draw_time);
-  layer_set_update_proc(s_background_layer, prv_draw_background);
+  layer_set_update_proc(s_time_layer, prv_draw_time_layer);
+  layer_set_update_proc(s_background_layer, prv_draw_background_layer);
 }
 
 static void prv_window_unload(Window *window) {
