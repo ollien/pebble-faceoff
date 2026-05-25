@@ -44,10 +44,24 @@ module.exports = [
 				"defaultValue": "Time Style"
 			},
 			{
-				"type": "toggle",
-				"messageKey": "SHOW_24H_TIME",
-				"label": "24-hour time",
-				"defaultValue": false
+				"type": "radiogroup",
+				"messageKey": "TIME_FORMAT",
+				"label": "Time format",
+				"defaultValue": "0",
+				"options": [
+					{
+						"label": "Use system setting",
+						"value": "0"
+					},
+					{
+						"label": "12-hour",
+						"value": "1"
+					},
+					{
+						"label": "24-hour",
+						"value": "2"
+					}
+				]
 			},
 			{
 				"type": "color",

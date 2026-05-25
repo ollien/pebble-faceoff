@@ -31,7 +31,7 @@
       "FILL_CORNERS",
       "HOUR_COLOR",
       "MINUTE_COLOR",
-      "SHOW_24H_TIME",
+      "TIME_FORMAT",
       "SHOW_DATE",
       "WDAY_COLOR",
       "MDAY_COLOR"

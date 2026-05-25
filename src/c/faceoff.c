@@ -73,11 +73,10 @@ static void prv_draw_time(Layer *layer, GContext *ctx, tm *time) {
 
   static char s_hour_buffer[3];
   static char s_min_buffer[3];
-  if (g_settings.show_24h_time) {
-    strftime(s_hour_buffer, sizeof(s_hour_buffer), "%H", time);
-  } else {
-    strftime(s_hour_buffer, sizeof(s_hour_buffer), "%I", time);
-  }
+  bool use_24h = g_settings.time_format == TIME_FORMAT_24H ||
+                 (g_settings.time_format == TIME_FORMAT_SYSTEM &&
+                  clock_is_24h_style());
+  strftime(s_hour_buffer, sizeof(s_hour_buffer), use_24h ? "%H" : "%I", time);
   strftime(s_min_buffer, sizeof(s_min_buffer), "%M", time);
 
   prv_f_draw_text(&fctx, f_hour_center, s_hour_buffer, g_settings.hour_color);
@@ -222,18 +221,9 @@ static void prv_save_settings() {
 
 static void prv_load_settings() {
   default_settings();
-
-  // Convert old settings, delete once we're done
-  SettingsV2 settings_v2;
-  if (persist_read_data(SETTINGS_KEY_V2, &settings_v2, sizeof(settings_v2)) !=
-      E_DOES_NOT_EXIST) {
-    from_v2_settings(settings_v2);
-    prv_save_settings();
-    persist_delete(SETTINGS_KEY_V2);
-    return;
+  if (!migrate_settings()) {
+    persist_read_data(SETTINGS_KEY, &g_settings, sizeof(g_settings));
   }
-
-  persist_read_data(SETTINGS_KEY, &g_settings, sizeof(g_settings));
 }
 
 static void prv_inbox_received_callback(DictionaryIterator *iterator,
