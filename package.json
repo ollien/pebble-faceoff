@@ -16,7 +16,9 @@
     "enableMultiJS": true,
     "targetPlatforms": [
       "basalt",
-      "emery"
+      "chalk",
+      "emery",
+      "gabbro"
     ],
     "watchapp": {
       "watchface": true
