@@ -143,7 +143,7 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
       f_center.x * cos_lookup(SLANT_ANGLE) / sin_lookup(SLANT_ANGLE);
 
   int32_t f_stripe_vertical_height =
-      f_stripe_width * TRIG_MAX_RATIO / sin_lookup(SLANT_ANGLE);
+      f_bounds.x * cos_lookup(SLANT_ANGLE) / sin_lookup(SLANT_ANGLE);
 
   int32_t f_height_offset = f_stripe_vertical_height + f_padding;
   if (flip) {
