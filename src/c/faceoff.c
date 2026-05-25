@@ -14,7 +14,8 @@ static FFont *s_font;
 static Layer *s_time_layer;
 static Layer *s_background_layer;
 
-static char *s_wdays[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+static const char *s_wdays[] = {"SUN", "MON", "TUE", "WED",
+                                "THU", "FRI", "SAT"};
 
 static int32_t prv_f_time_font_height(GRect bounds) {
   return INT_TO_FIXED(bounds.size.h / 3);
@@ -206,9 +207,9 @@ static void prv_window_load(Window *window) {
 }
 
 static void prv_window_unload(Window *window) {
-  ffont_destroy(s_font);
   layer_destroy(s_time_layer);
   layer_destroy(s_background_layer);
+  ffont_destroy(s_font);
 }
 
 static void prv_save_settings() {
