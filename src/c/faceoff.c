@@ -144,14 +144,21 @@ static void prv_draw_background_stripe(Layer *layer, GContext *ctx,
       f_bounds.x * cos_lookup(SLANT_ANGLE) / sin_lookup(SLANT_ANGLE);
 
   int32_t f_height_offset = -f_stripe_vertical_height - f_padding;
+  // Hackfix: there is some minor blending that causes a black stripe between
+  // two adjacent stripes I've "found that 1/4 of a pixel is enough to hide
+  // this.
+  int32_t f_aa_hackfix_offset = FIXED_POINT_SCALE / 4;
   if (flip) {
     f_height_offset *= -1;
+    f_aa_hackfix_offset *= -1;
   }
 
   FPoint lower_left_point =
-      FPoint(0, f_center.y + f_center_to_stripe_bottom_left_offset);
+      FPoint(0, f_center.y + f_center_to_stripe_bottom_left_offset +
+                    f_aa_hackfix_offset);
 
-  FPoint upper_left_point = FPoint(0, lower_left_point.y + f_height_offset);
+  FPoint upper_left_point =
+      FPoint(0, lower_left_point.y + f_height_offset + f_aa_hackfix_offset);
 
   FPoint lower_right_point =
       FPoint(f_bounds.x, lower_left_point.y - f_stripe_vertical_height);
